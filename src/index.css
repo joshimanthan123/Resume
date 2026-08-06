@@ -1,0 +1,91 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+/* Base styles for dark mode compatibility */
+.dark .glass-card {
+    background: rgba(20, 27, 46, 0.7);
+    border-color: rgba(67, 70, 85, 0.6);
+}
+
+/* Animations & Transitions */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Floating Animation */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+/* Skill Chips Hover */
+.skill-chip {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.skill-chip:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 74, 198, 0.2);
+    background-color: rgba(0, 74, 198, 0.1) !important;
+}
+
+/* Project Cards Hover */
+.project-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.project-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Button Pulse */
+@keyframes pulse-subtle {
+    0% { box-shadow: 0 0 0 0 rgba(0, 74, 198, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 74, 198, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 74, 198, 0); }
+}
+.btn-pulse:hover {
+    animation: pulse-subtle 2s infinite;
+}
+
+/* Background Mesh Gradient */
+@keyframes mesh-drift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+.mesh-bg {
+    background: linear-gradient(-45deg, rgba(0, 74, 198, 0.03), rgba(70, 72, 212, 0.03), rgba(250, 248, 255, 0.1), rgba(219, 225, 255, 0.03));
+    background-size: 400% 400%;
+    animation: mesh-drift 15s ease infinite;
+}
+
+/* Scroll Progress Bar */
+#scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: #004ac6;
+    z-index: 100;
+    transition: width 0.1s ease-out;
+}
