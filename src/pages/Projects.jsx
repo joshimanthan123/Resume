@@ -6,7 +6,7 @@ export default function Projects() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const GITHUB_USERNAME = 'joshimanthan';
+  const GITHUB_USERNAME = 'google';
 
   const fetchRepos = () => {
     setLoading(true);
