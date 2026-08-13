@@ -1,0 +1,47 @@
+=== STARTING API TESTS ===
+
+[TEST] GET /tasks returns initial array of 2 tasks (200 OK)
+       Received: 2 tasks
+[PASS] GET /tasks returns initial array of 2 tasks (200 OK)
+
+[TEST] POST /tasks creates a new task (201 Created)
+       Created task with ID: 3
+[PASS] POST /tasks creates a new task (201 Created)
+
+[TEST] POST /tasks fails without Content-Type header (400 Bad Request)
+       Error msg: "Missing Content-Type header"
+[PASS] POST /tasks fails without Content-Type header (400 Bad Request)
+
+[TEST] POST /tasks fails with invalid Content-Type (415 Unsupported Media Type)
+       Error msg: "Content-Type must be application/json"
+[PASS] POST /tasks fails with invalid Content-Type (415 Unsupported Media Type)
+
+[TEST] POST /tasks fails with empty/missing title (400 Bad Request)
+       Error msg: "Validation failed. "title" is required and must be a non-empty string."
+[PASS] POST /tasks fails with empty/missing title (400 Bad Request)
+
+[TEST] PUT /tasks/:id updates task fields (200 OK)
+       Updated name: "Updated title by Script" completed: true
+[PASS] PUT /tasks/:id updates task fields (200 OK)
+
+[TEST] PUT /tasks/abc fails with validation error (400 Bad Request)
+       Error msg: "Invalid Task ID format. Task ID must be a positive integer."
+[PASS] PUT /tasks/abc fails with validation error (400 Bad Request)
+
+[TEST] PUT /tasks/999 fails with 404 (404 Not Found)
+       Error msg: "Task with ID 999 not found."
+[PASS] PUT /tasks/999 fails with 404 (404 Not Found)
+
+[TEST] DELETE /tasks/:id deletes task and returns success (200 OK)
+       Response msg: "Task deleted successfully."
+[PASS] DELETE /tasks/:id deletes task and returns success (200 OK)
+
+[TEST] GET /undefined-route hits 404 handler (404 Not Found)
+       Route not found JSON handled successfully
+[PASS] GET /undefined-route hits 404 handler (404 Not Found)
+
+[TEST] GET /trigger-error triggers global error handler (500 Internal Server Error)
+       Server gracefully returned: {"error": "Something went wrong", "message": "Deliberately triggered server error for testing."}
+[PASS] GET /trigger-error triggers global error handler (500 Internal Server Error)
+
+=== TEST SUMMARY: 11/11 PASSED ===
