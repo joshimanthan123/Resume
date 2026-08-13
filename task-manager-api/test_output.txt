@@ -1,47 +1,58 @@
-=== STARTING API TESTS ===
+=== STARTING MONGOOSE INTEGRATION TESTS ===
 
-[TEST] GET /tasks returns initial array of 2 tasks (200 OK)
-       Received: 2 tasks
-[PASS] GET /tasks returns initial array of 2 tasks (200 OK)
+[TEST] GET /tasks returns a JSON array (200 OK)
+       Database tasks fetched, status code: 200. Array count: 0
+[PASS] GET /tasks returns a JSON array (200 OK)
 
-[TEST] POST /tasks creates a new task (201 Created)
-       Created task with ID: 3
-[PASS] POST /tasks creates a new task (201 Created)
+[TEST] POST /tasks trims title whitespace using pre-save hook (201 Created)
+       Task created with ID: 6a7d47c7c99f858ac861e422
+       Received title: "Trimmed by Mongoose pre-save" (Whitespace successfully trimmed!)
+[PASS] POST /tasks trims title whitespace using pre-save hook (201 Created)
 
-[TEST] POST /tasks fails without Content-Type header (400 Bad Request)
+[TEST] POST /tasks without Content-Type header fails (400 Bad Request)
        Error msg: "Missing Content-Type header"
-[PASS] POST /tasks fails without Content-Type header (400 Bad Request)
+[PASS] POST /tasks without Content-Type header fails (400 Bad Request)
 
-[TEST] POST /tasks fails with invalid Content-Type (415 Unsupported Media Type)
-       Error msg: "Content-Type must be application/json"
-[PASS] POST /tasks fails with invalid Content-Type (415 Unsupported Media Type)
+[TEST] POST /tasks without title triggers Mongoose validation error (400 Bad Request)
+       Error msg: "Validation failed"
+       Details: {"title":"Path \"title\" is required."}
+[PASS] POST /tasks without title triggers Mongoose validation error (400 Bad Request)
 
-[TEST] POST /tasks fails with empty/missing title (400 Bad Request)
-       Error msg: "Validation failed. "title" is required and must be a non-empty string."
-[PASS] POST /tasks fails with empty/missing title (400 Bad Request)
+[TEST] POST /tasks with invalid priority enum triggers validation error (400 Bad Request)
+       Error msg: "Validation failed"
+       Details: {"priority":"`urgent` is not a valid enum value for path `priority`."}
+[PASS] POST /tasks with invalid priority enum triggers validation error (400 Bad Request)
 
-[TEST] PUT /tasks/:id updates task fields (200 OK)
-       Updated name: "Updated title by Script" completed: true
-[PASS] PUT /tasks/:id updates task fields (200 OK)
+[TEST] GET /tasks/:id returns single task (200 OK)
+       Successfully fetched task title: "Trimmed by Mongoose pre-save"
+[PASS] GET /tasks/:id returns single task (200 OK)
 
-[TEST] PUT /tasks/abc fails with validation error (400 Bad Request)
-       Error msg: "Invalid Task ID format. Task ID must be a positive integer."
-[PASS] PUT /tasks/abc fails with validation error (400 Bad Request)
+[TEST] GET /tasks/abc fails with custom ID format error (400 Bad Request)
+       Cleanly intercepted invalid ID: "Invalid Task ID format. Must be a valid 24-character hexadecimal MongoDB ObjectId."
+[PASS] GET /tasks/abc fails with custom ID format error (400 Bad Request)
 
-[TEST] PUT /tasks/999 fails with 404 (404 Not Found)
-       Error msg: "Task with ID 999 not found."
-[PASS] PUT /tasks/999 fails with 404 (404 Not Found)
+[TEST] GET /tasks/507f1f77bcf86cd799439011 returns 404 (404 Not Found)
+       Valid ID but not present output: "Task not found"
+[PASS] GET /tasks/507f1f77bcf86cd799439011 returns 404 (404 Not Found)
+
+[TEST] PUT /tasks/:id updates fields and executes validators (200 OK)
+       Updated fields -> priority: "low" completed: true
+[PASS] PUT /tasks/:id updates fields and executes validators (200 OK)
+
+[TEST] PUT /tasks/:id fails with validation format error on invalid enum (400 Bad Request)
+       Validator caught: "Validation failed" details: {"priority":"`critical` is not a valid enum value for path `priority`."}
+[PASS] PUT /tasks/:id fails with validation format error on invalid enum (400 Bad Request)
 
 [TEST] DELETE /tasks/:id deletes task and returns success (200 OK)
-       Response msg: "Task deleted successfully."
+       Delete output message: "Task deleted successfully"
 [PASS] DELETE /tasks/:id deletes task and returns success (200 OK)
 
 [TEST] GET /undefined-route hits 404 handler (404 Not Found)
-       Route not found JSON handled successfully
+       404 Catch-All returns: {"error":"Route not found"}
 [PASS] GET /undefined-route hits 404 handler (404 Not Found)
 
-[TEST] GET /trigger-error triggers global error handler (500 Internal Server Error)
-       Server gracefully returned: {"error": "Something went wrong", "message": "Deliberately triggered server error for testing."}
-[PASS] GET /trigger-error triggers global error handler (500 Internal Server Error)
+[TEST] GET /trigger-error triggers global error handler hiding track traces (500 Internal Server Error)
+       Global error handled cleanly: {"error":"Something went wrong"}
+[PASS] GET /trigger-error triggers global error handler hiding track traces (500 Internal Server Error)
 
-=== TEST SUMMARY: 11/11 PASSED ===
+=== TEST SUMMARY: 13/13 PASSED ===

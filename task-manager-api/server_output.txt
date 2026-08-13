@@ -1,0 +1,6 @@
+◇ injected env (2) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Server running on port 5000
+Successfully connected to MongoDB.
+GET /tasks/6a7d491cf82e5373abcf3348 - 2026-08-13T04:35:19.490Z
+DELETE /tasks/6a7d491cf82e5373abcf3348 - 2026-08-13T04:35:47.601Z
+^C

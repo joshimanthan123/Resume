@@ -1,31 +1,59 @@
-# Task Manager RESTful API (Practical 4)
+# Task Manager API (Practical 5: MongoDB & Mongoose Integration)
 
-A lightweight Task Management backend server built using Node.js and Express. It features in-memory CRUD operations, custom global & route-specific middlewares, robust validation, and exception handling.
+An Express RESTful API for task management integrated with a MongoDB database using Mongoose.
 
 ## Directory Structure
 
 ```
 task-manager-api/
+├── models/
+│   └── Task.js           # Mongoose Task Schema and hook
 ├── node_modules/         # Node dependencies
-├── .gitignore            # Excluded directories (node_modules)
-├── package.json          # Project details and dependencies
-├── server.js             # Express application & routing logic
-└── README.md             # Project documentation & Analysis answers
+├── .env                  # Environment connection variables (git-ignored)
+├── .env.example          # Environment variables template
+├── .gitignore            # Excluded files
+├── package.json          # Dependencies configuration
+├── server.js             # Express connection and controllers
+└── README.md             # Project documentation & Key answers
 ```
 
 ## Features & Route Lifecycle
 
 The application processes requests through the following pipeline:
-1. **Request Logger Middleware**: Logs every incoming requests with a timestamp.
-2. **Content-Type Validation**: Rejects POST & PUT requests lacking a `Content-Type: application/json` header structure with status `400` or `415`.
-3. **JSON Parser**: Standard `express.json()` reads Request-Body JSON.
+1. **JSON Body Parser**: Standard `express.json()` parses payload JSON.
+2. **Request Logger Middleware**: Logs every incoming request method, path, and timestamp.
+3. **Content-Type Validation**: Rejects POST & PUT requests lacking a `Content-Type: application/json` header structure with status `400` or `415`.
 4. **Task Routes**:
-   - `GET /tasks` - Lists tasks.
-   - `POST /tasks` - Adds a task (requires valid title).
-   - `PUT /tasks/:id` - Updates task (requires valid task ID and valid fields).
-   - `DELETE /tasks/:id` - Deletes task (requires valid task ID).
+   - `GET /tasks` - Lists tasks fetched from MongoDB.
+   - `GET /tasks/:id` - Fetches single task (Mongoose ID validate).
+   - `POST /tasks` - Stores a task (validates schema inputs, trims `title` via pre-save hook, supports priority enum).
+   - `PUT /tasks/:id` - Updates task fields (applies Mongoose verification).
+   - `DELETE /tasks/:id` - Deletes task.
 5. **404 Undefined Route Handler**: Handles unregistered routes cleanly in JSON.
-6. **Global Error Handler**: Captures all errors forwarded via `next(err)` and returns a structured `500` error safely.
+6. **Global Error Handler**: Captures all errors forwarded via `next(err)`:
+   - Formats Mongoose `ValidationError` and enum errors into neat client-safe fields.
+   - Hides detailed trace logs from general runtime failures, outputting a generic `500` error.
+
+---
+
+## Mongoose Schema Design (`models/Task.js`)
+
+* **title**: String, required.
+* **description**: String.
+* **completed**: Boolean, default `false`.
+* **priority**: String, enum: `["low", "medium", "high"]`, default `medium`.
+* **createdAt**: Date, default `Date.now`.
+
+### Custom Hook: Title Trimmer
+We implement a Mongoose pre-save hook on the schema:
+```javascript
+taskSchema.pre('save', function(next) {
+  if (this.title && typeof this.title === 'string') {
+    this.title = this.title.trim();
+  }
+  next();
+});
+```
 
 ---
 
@@ -51,6 +79,7 @@ Express resolves middlewares and routes sequentially in registration order. When
 
 ### Prerequisites
 - Node.js (v18+)
+- Local MongoDB Server (running on `mongodb://127.0.0.1:27017`)
 - npm
 
 ### Installation & Run
@@ -63,7 +92,13 @@ Express resolves middlewares and routes sequentially in registration order. When
    ```bash
    npm install
    ```
-3. Run the server:
+3. Set up the environment variables:
+   Copy `.env.example` into `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   Modify connection strings in `.env` if necessary.
+4. Run the server:
    ```bash
    node server.js
    ```
@@ -74,82 +109,74 @@ Express resolves middlewares and routes sequentially in registration order. When
 ## API Documentation
 
 ### 1. GET `/tasks`
-- **Description**: Returns all tasks in the in-memory array.
+- **Description**: Returns all tasks in the MongoDB collection.
 - **Response Code**: `200 OK`
-- **Response Body**:
-  ```json
-  [
-    {
-      "id": 1,
-      "title": "Learn Express",
-      "description": "Understand middleware pipelines in Node.js",
-      "completed": false
-    }
-  ]
-  ```
 
-### 2. POST `/tasks`
-- **Description**: Creates a new task in memory.
+### 2. GET `/tasks/:id`
+- **Description**: Returns a specific task using its MongoDB ObjectId.
+- **Response Code**: `200 OK` (or `404 Not Found` if task not found)
+
+### 3. POST `/tasks`
+- **Description**: Creates a new task in MongoDB.
 - **Headers**: `Content-Type: application/json`
 - **Request Body**:
   ```json
   {
-    "title": "Clean room",
-    "description": "Dust the library and wipe tables",
-    "completed": false
+    "title": "   Complete Practical 5   ",
+    "description": "Integrate MongoDB with Mongoose",
+    "priority": "high"
   }
   ```
 - **Response Code**: `201 Created`
-- **Response Body**:
+- **Response Body** (spaces in title trimmed automatically):
   ```json
   {
-    "id": 3,
-    "title": "Clean room",
-    "description": "Dust the library and wipe tables",
-    "completed": false
+    "_id": "64d8a5fbd23547285c53ff3c",
+    "title": "Complete Practical 5",
+    "description": "Integrate MongoDB with Mongoose",
+    "completed": false,
+    "priority": "high",
+    "createdAt": "2026-08-13T10:00:00.000Z",
+    "__v": 0
   }
   ```
 
-### 3. PUT `/tasks/:id`
-- **Description**: Updates task params (supports partial updating).
+### 4. PUT `/tasks/:id`
+- **Description**: Updates task params (supports partial updating and runs validators).
 - **Headers**: `Content-Type: application/json`
-- **Route Parameters**: `id` must be a positive integer.
+- **Route Parameters**: `id` must be a valid 24-character hexadecimal MongoDB ObjectId.
 - **Request Body**:
   ```json
   {
-    "title": "Clean room updated",
+    "title": "Practical 5 integration complete",
     "completed": true
   }
   ```
 - **Response Code**: `200 OK` (or `404 Not Found` if task not found)
-- **Response Body**:
-  ```json
-  {
-    "id": 3,
-    "title": "Clean room updated",
-    "description": "Dust the library and wipe tables",
-    "completed": true
-  }
-  ```
 
-### 4. DELETE `/tasks/:id`
-- **Description**: Removes task from memory.
-- **Route Parameters**: `id` must be a positive integer.
+### 5. DELETE `/tasks/:id`
+- **Description**: Removes task from MongoDB.
+- **Route Parameters**: `id` must be a valid 24-character hexadecimal MongoDB ObjectId.
 - **Response Code**: `200 OK` (or `404 Not Found` if task not found)
-- **Response Body**:
+
+### 6. Validation and Error Cases
+- **Invalid ID on PUT/DELETE**: `PUT /tasks/abc` -> returns `400 Bad Request` with `{"error": "Invalid Task ID format. Must be a valid 24-character hexadecimal MongoDB ObjectId."}`.
+- **Validation Failure (Missing Title)**: `POST /tasks` with no title field -> returns `400 Bad Request` with:
   ```json
   {
-    "message": "Task deleted successfully.",
-    "task": {
-      "id": 3,
-      "title": "Clean room updated",
-      "description": "Dust the library and wipe tables",
-      "completed": true
+    "error": "Validation failed",
+    "details": {
+      "title": "Path \"title\" is required."
     }
   }
   ```
-
-### 5. Validation and Error Trigger routes
-- **Invalid ID on PUT/DELETE**: `PUT /tasks/abc` -> returns `400 Bad Request` with `{"error": "Invalid Task ID format. Task ID must be a positive integer."}`.
-- **Missing JSON Headers**: `POST /tasks` with no headers -> returns `400 Bad Request` with `{"error": "Missing Content-Type header"}`.
-- **Exception Verification endpoint**: `GET /trigger-error` -> throws error, returns `500 Internal Server Error` with `{"error": "Something went wrong", "message": "Deliberately triggered server error for testing."}`.
+- **Validation Failure (Invalid Priority Enum)**: `POST /tasks` with `"priority": "urgent"` -> returns `400` with:
+  ```json
+  {
+    "error": "Validation failed",
+    "details": {
+      "priority": "`urgent` is not a valid enum value for path `priority`."
+    }
+  }
+  ```
+- **Exception Verification**: `GET /trigger-error` -> throws error, returns `500 Internal Server Error` with `{"error": "Something went wrong"}`.
