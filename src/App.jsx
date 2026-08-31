@@ -6,9 +6,13 @@ import Home from './pages/Home';
 import Projects from './pages/Projects';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
+import { getToken, getStoredUser, logout, getMe } from './api';
 
 export default function App() {
   const location = useLocation();
+
+  // Global Auth state
+  const [user, setUser] = useState(() => getStoredUser());
 
   // Dark/Light Mode state
   const [darkMode, setDarkMode] = useState(() => {
@@ -16,6 +20,32 @@ export default function App() {
     if (saved !== null) return JSON.parse(saved);
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
+
+  // Verify stored token on initial load
+  useEffect(() => {
+    const verifyUser = async () => {
+      const token = getToken();
+      if (token) {
+        try {
+          const me = await getMe();
+          if (me) {
+            setUser(me);
+          }
+        } catch (err) {
+          // Token invalid or expired
+          handleLogout();
+        }
+      } else {
+        setUser(null);
+      }
+    };
+    verifyUser();
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+  };
 
   // Apply dark mode class to root html element
   useEffect(() => {
@@ -41,11 +71,10 @@ export default function App() {
     };
 
     window.addEventListener('scroll', handleScroll);
-    // Initialize once
     handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [location.pathname]); // Re-initialize on route change to adjust for differing heights
+  }, [location.pathname]);
 
   // IntersectionObserver for elements with '.reveal' class
   useEffect(() => {
@@ -64,11 +93,10 @@ export default function App() {
     const elements = document.querySelectorAll('.reveal');
     elements.forEach(el => revealObserver.observe(el));
 
-    // Cleanup: unobserve
     return () => {
       elements.forEach(el => revealObserver.unobserve(el));
     };
-  }, [location.pathname]); // Re-observe elements on route change!
+  }, [location.pathname]);
 
   // Reset scroll to top on route change
   useEffect(() => {
@@ -83,15 +111,35 @@ export default function App() {
       {/* Sticky NavBar Header */}
       <NavBar 
         darkMode={darkMode} 
-        toggleDarkMode={() => setDarkMode(!darkMode)} 
+        toggleDarkMode={() => setDarkMode(!darkMode)}
+        user={user}
+        onLogout={handleLogout}
       />
 
       {/* Main Pages Layout Container */}
       <main className="flex-grow pt-16">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/tasks" element={<Projects />} />
+          <Route 
+            path="/projects" 
+            element={
+              <Projects 
+                user={user} 
+                setUser={setUser} 
+                onLogout={handleLogout} 
+              />
+            } 
+          />
+          <Route 
+            path="/tasks" 
+            element={
+              <Projects 
+                user={user} 
+                setUser={setUser} 
+                onLogout={handleLogout} 
+              />
+            } 
+          />
           <Route path="/contact" element={<Contact />} />
           {/* Custom 404 Route */}
           <Route path="*" element={<NotFound />} />

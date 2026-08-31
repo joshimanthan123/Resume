@@ -29,6 +29,11 @@ const taskSchema = new mongoose.Schema({
     },
     default: 'medium',
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'User ID is required for task ownership.'],
+  },
   createdAt: {
     type: Date,
     default: Date.now,

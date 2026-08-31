@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useState } from 'react';
 
-export default function NavBar({ darkMode, toggleDarkMode }) {
+export default function NavBar({ darkMode, toggleDarkMode, user, onLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const activeStyle = "text-primary dark:text-primary-compiler font-semibold border-b-2 border-primary pb-1 transition-all duration-200";
@@ -42,6 +42,26 @@ export default function NavBar({ darkMode, toggleDarkMode }) {
             Contact
           </NavLink>
 
+          {/* User Auth Info / Logout */}
+          {user ? (
+            <div className="flex items-center gap-3 bg-surface-container-low dark:bg-inverse-surface/60 px-3 py-1.5 rounded-xl border border-outline-variant/40 dark:border-outline/20">
+              <span className="material-symbols-outlined text-[18px] text-primary dark:text-[#5c8bee]">
+                account_circle
+              </span>
+              <span className="text-xs font-semibold text-on-surface dark:text-gray-200">
+                {user.email}
+              </span>
+              <button
+                onClick={onLogout}
+                className="px-2.5 py-1 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                title="Sign out of account"
+              >
+                <span className="material-symbols-outlined text-[16px]">logout</span>
+                Logout
+              </button>
+            </div>
+          ) : null}
+
           {/* Dark Mode Toggle */}
           <button 
             onClick={toggleDarkMode}
@@ -56,6 +76,15 @@ export default function NavBar({ darkMode, toggleDarkMode }) {
 
         {/* Icons for mobile */}
         <div className="flex md:hidden items-center gap-3">
+          {user && (
+            <button
+              onClick={onLogout}
+              className="p-1.5 text-xs text-red-600 dark:text-red-400 border border-red-500/20 rounded-lg flex items-center gap-1"
+            >
+              <span className="material-symbols-outlined text-[18px]">logout</span>
+            </button>
+          )}
+
           <button 
             onClick={toggleDarkMode}
             className="p-2 text-on-surface dark:text-white hover:bg-surface-container dark:hover:bg-on-surface-variant/35 rounded-full transition-all duration-300 flex items-center justify-center"
@@ -82,6 +111,11 @@ export default function NavBar({ darkMode, toggleDarkMode }) {
       {mobileMenuOpen && (
         <div className="md:hidden bg-white dark:bg-inverse-surface border-b border-outline-variant dark:border-outline/35 transition-all duration-300">
           <div className="flex flex-col px-margin-mobile py-4 gap-4 font-body-md">
+            {user && (
+              <div className="text-xs font-mono text-primary dark:text-[#5c8bee] pb-2 border-b border-outline-variant/40">
+                Logged in as: {user.email}
+              </div>
+            )}
             <NavLink 
               to="/" 
               onClick={() => setMobileMenuOpen(false)}
@@ -90,11 +124,11 @@ export default function NavBar({ darkMode, toggleDarkMode }) {
               Home
             </NavLink>
             <NavLink 
-              to="/projects" 
+              to="/tasks" 
               onClick={() => setMobileMenuOpen(false)}
               className={({ isActive }) => isActive ? `py-2 ${activeStyle}` : `py-2 ${inactiveStyle}`}
             >
-              Projects
+              Task Manager
             </NavLink>
             <NavLink 
               to="/contact" 
