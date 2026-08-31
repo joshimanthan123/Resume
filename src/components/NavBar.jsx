@@ -30,10 +30,10 @@ export default function NavBar({ darkMode, toggleDarkMode }) {
             Home
           </NavLink>
           <NavLink 
-            to="/projects" 
+            to="/tasks" 
             className={({ isActive }) => isActive ? activeStyle : inactiveStyle}
           >
-            Projects
+            Task Manager
           </NavLink>
           <NavLink 
             to="/contact" 

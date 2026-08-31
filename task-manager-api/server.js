@@ -3,7 +3,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Task = require('./models/Task');
 
+const cors = require('cors');
+
 const app = express();
+
+// Configure CORS for frontend origin (http://localhost:5173)
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173']
+}));
 
 // Establish connection to MongoDB
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/task_manager';
@@ -56,7 +63,7 @@ const validateTaskId = (req, res, next) => {
 // GET /tasks - Fetch all tasks
 app.get('/tasks', async (req, res, next) => {
   try {
-    const tasks = await Task.find();
+    const tasks = await Task.find().sort({ createdAt: -1 });
     res.status(200).json(tasks);
   } catch (error) {
     next(error);
@@ -79,8 +86,10 @@ app.get('/tasks/:id', validateTaskId, async (req, res, next) => {
 // POST /tasks - Create a new task
 app.post('/tasks', async (req, res, next) => {
   try {
-    const { title, description, completed, priority } = req.body;
-    const task = await Task.create({ title, description, completed, priority });
+    const { title, description, completed, status, priority } = req.body;
+    const taskData = { title, description, completed, priority };
+    if (status) taskData.status = status;
+    const task = await Task.create(taskData);
     res.status(201).json(task);
   } catch (error) {
     next(error);
@@ -90,15 +99,22 @@ app.post('/tasks', async (req, res, next) => {
 // PUT /tasks/:id - Update an existing task
 app.put('/tasks/:id', validateTaskId, async (req, res, next) => {
   try {
-    const { title, description, completed, priority } = req.body;
-    const task = await Task.findByIdAndUpdate(
-      req.params.id,
-      { title, description, completed, priority },
-      { new: true, runValidators: true }
-    );
+    const { title, description, completed, status, priority } = req.body;
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (completed !== undefined) updateData.completed = completed;
+    if (status !== undefined) updateData.status = status;
+    if (priority !== undefined) updateData.priority = priority;
+
+    const task = await Task.findById(req.params.id);
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
     }
+
+    Object.assign(task, updateData);
+    await task.save();
+
     res.status(200).json(task);
   } catch (error) {
     next(error);
