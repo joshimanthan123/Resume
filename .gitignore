@@ -7,13 +7,18 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-task-manager-api/node_modules
-dist
-dist-ssr
-*.local
+# Node modules & build artifacts (recursive)
+node_modules/
+**/node_modules/
+dist/
+dist-ssr/
+build_output.log
+
+# Environment variables (recursive)
 .env
 .env.*
+**/.env
+**/.env.*
 
 # Editor directories and files
 .vscode/*
