@@ -22,7 +22,7 @@ describe('Task Management API - CI/CD Test Suite', () => {
   describe('GET /api/tasks', () => {
     test('should return status 200', async () => {
       const res = await request(app).get('/api/tasks');
-      expect(res.statusCode).toBe(200);
+      expect(res.statusCode).toBe(999); // ← DELIBERATELY BROKEN for CI failure demo
     });
 
     test('should return an object with a data array', async () => {
