@@ -78,4 +78,15 @@ describe('Task Management API - CI/CD Test Suite', () => {
     });
   });
 
+  // ----- DELIBERATE FAIL (Step 5 of CI/CD Demo) -----
+  // This test intentionally uses a wrong expectation (999 instead of 200).
+  // Push this version to main → screenshot the FAILED GitHub Actions run.
+  // Then delete this describe block and push again → screenshot the PASSING run.
+  describe('DELIBERATE FAIL — CI/CD Demonstration', () => {
+    test('wrong status expectation to trigger pipeline failure', async () => {
+      const res = await request(app).get('/api/health');
+      expect(res.statusCode).toBe(999); // WRONG on purpose — should be 200
+    });
+  });
+
 });
